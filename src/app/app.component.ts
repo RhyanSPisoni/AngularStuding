@@ -1,20 +1,20 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Todo } from 'src/models/todo.model';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-root', // <app-root>
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
   public todos: Todo[] = [];
   public form: FormGroup;
-  public title: String = '';
+  public mode: String = 'list';
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      textTitle: [
+      title: [
         '',
         Validators.compose([
           Validators.minLength(3),
@@ -25,40 +25,30 @@ export class AppComponent {
     });
 
     this.load();
-
-    // this.todos.push(new Todo('Algo 1', true));
-    // this.todos.push(new Todo('Algo 2', false));
   }
 
-  load() {
-    this.todos = JSON.parse(localStorage.getItem('todos')!);
+  changeMode(mode: String) {
+    this.mode = mode;
   }
 
-  save() {
-    const data = JSON.stringify(this.todos);
-
-    localStorage.setItem('todos', data);
+  add() {
+    const title = this.form.controls['title'].value;
+    const id = this.todos.length + 1;
+    this.todos.push(new Todo(id, title, false));
+    this.save();
+    this.clear();
+    this.changeMode('list');
   }
 
   clear() {
     this.form.reset();
   }
 
-  add() {
-    const title = this.form.controls['textTitle'].value;
-
-    this.todos.push(new Todo(title, false));
-    this.save();
-    this.clear();
-  }
-
   remove(todo: Todo) {
     const index = this.todos.indexOf(todo);
-
     if (index !== -1) {
       this.todos.splice(index, 1);
     }
-
     this.save();
   }
 
@@ -67,8 +57,22 @@ export class AppComponent {
     this.save();
   }
 
-  unMarkAsDone(todo: Todo) {
+  markAsUndone(todo: Todo) {
     todo.done = false;
     this.save();
+  }
+
+  save() {
+    const data = JSON.stringify(this.todos);
+    localStorage.setItem('todos', data);
+  }
+
+  load() {
+    const data = localStorage.getItem('todos');
+    if (data) {
+      this.todos = JSON.parse(data);
+    } else {
+      this.todos = [];
+    }
   }
 }
